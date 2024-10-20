@@ -1,4 +1,2 @@
-fastapi
+fastapi[all]
 uvicorn
-rembg
-pillow
