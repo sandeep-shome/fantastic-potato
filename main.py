@@ -1,6 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
-import io
 
 app = FastAPI()
 
