@@ -1,5 +1,6 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+import os
+import uvicorn
+from fastapi import FastAPI
 from PIL import Image
 import io
 from rembg import remove
@@ -12,23 +13,23 @@ def home():
 
 @app.get("/health")
 def health():
-    return JSONResponse(content={"status": "healthy"}, status_code=200)
+    return {"status": "healthy"}
 
 @app.post("/remove-bg")
-async def remove_bg(image: UploadFile = File(...)):
-    try:
-        # Open the uploaded image
-        input_img = Image.open(image.file)
+async def remove_bg(image: bytes = None):
+    if not image:
+        return {"error": "No image provided."}
 
-        # Remove background
-        output_img = remove(input_img)
+    input_img = Image.open(io.BytesIO(image))
+    output_img = remove(input_img)
 
-        # Save the output image to a buffer
-        buf = io.BytesIO()
-        output_img.save(buf, format="PNG")
-        buf.seek(0)
+    buf = io.BytesIO()
+    output_img.save(buf, format="PNG")
+    buf.seek(0)
 
-        return StreamingResponse(buf, media_type="image/png")
+    return {"message": "Background removed successfully!"}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+if __name__ == "__main__":
+    # Get the dynamic port assigned by Render (default to 5000 if not set)
+    port = int(os.environ.get("PORT", 5000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
